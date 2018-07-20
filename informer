@@ -1,0 +1,90 @@
+#!/bin/bash
+
+
+# Parameters
+VPNFILE='/VPNFILE'
+GEOM='80x40'
+SEC=1
+LOOP_RETRY=10
+TARGET=''
+LHOST_IP=$(ifconfig tun0 |grep "inet 10.10"| cut -c14-24)
+NO_LIP=''
+
+
+
+
+
+
+#### FUNCTIONS
+function check_tunnel_ip()
+{
+    # check for ip
+    while true; do
+        $NO_LIP=$(ifconfig tun0 |grep inet|cut -c12-24 1>&2)
+        if [[ $NO_LIP =~ '10.10.10' ]]; then
+            echo -e "[+] Found an ip: " $NO_LIP
+            $NO_LIP=$LHOST_IP
+            break
+        else
+            echo -e "...Retreiving vpn ip"
+            sleep 5
+            $NO_LIP=$(ifconfig tun0 |grep inet|cut -c12-24 1>&2)
+        fi
+    done
+}
+
+
+function print_intro()
+{
+    banner-spiderman
+    echo -e "\n\n"
+    echo -e "   Spiderman             "
+    echo -e "------------------>>"
+    echo -e "This is a proof of concept and is not intended to be use "
+    echo -e "to harm any organizations nor the private sector."
+    echo -e ""
+    ### END
+}
+
+print_intro
+sleep 3
+echo -e "[+] Cheking for vpn process to kill."
+
+VPNPROC=$(ps -C openvpn|cut -c2-6 1>&2)
+
+while [$LOOP_RETRY > 0]
+do
+    if ($VPNPROC =~ ' PID') then
+        break
+    else
+        kill $VPNPROC
+    fi
+    $LOOP_RETRY = $LOOP_RETRY -1
+done
+echo -e "[+] Starting vpn connection."
+xfce4-terminal -e "openvpn $VPNFILE" --geometry=$GEOM --hold --minimize &
+
+sleep 5
+echo -e "[+] Retreiving vpn ip... Please wait."
+sleep 3
+<
+
+
+# $NO_LIP=$(ifconfig tun0 1>&2)
+# if [[ $NO_LIP != '10.10.10' ]]; then
+#     echo -e "   -> no vpn ip found! rechecking..."
+    
+# else
+#     # port scanning
+#     echo -e "\n\n[+] Enter a web address: "
+#     read TARGET
+#     # end
+#     echo -e "[+] Scanning target: " $TARGET
+#     # xfce4-terminal -e "nmap -sSV -A -T4 -O -n $HOST" --geometry=$GEOM --hold &
+# fi
+read -p "[+] Please wait until the port scan is done."
+
+
+
+
+# exit 0;
